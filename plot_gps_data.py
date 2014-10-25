@@ -1,3 +1,6 @@
+# Plots Sensor Log gps observations as a vector field
+# Command line arguments: filepath to Sensor Log csv file
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +9,8 @@ import math
 
 DELIMITER = ';'
 
-
+# Read file and return contents as a dict: {'measure_name': [value1, value2,...]}
+# Values are not converted but are raw strings.
 def read_gps_file(f):
     headers = f.readline().split(DELIMITER)
     headers = [header.strip() for header in headers]
@@ -18,13 +22,19 @@ def read_gps_file(f):
     data = {headers[i]: [d for d in data[i]] for i in range(n_fields)}
     return data
 
+# Displays a vector field plot of GPS and sensor observations.
+# Tail position of a vector == long, lat
+# Vector length == speed
+# Vector direction == course
 def plot_vector_field(data):
     lat = np.array([float(l) for l in data['lat']]) 
     lon = np.array([float(l) for l in data['long']]) 
+    # need angle conversion. Original angle is 0 north 90 east 180 south 270 west.
+    # converting to north -90, east 0, and so on
     course = [math.radians(-float(c)+90) if float(c) >=0 else None for c in data['course']]
     speed = [float(s) if float(s)>=0 else 0.0 for s in data['speed']]
-    course_x = [math.cos(c)*speed[i] for i, c in enumerate(course)]
-    course_y = [math.sin(c)*speed[i] for i, c in enumerate(course)]
+    course_x = [math.cos(c)*speed[i]**2 for i, c in enumerate(course)]
+    course_y = [math.sin(c)*speed[i]**2 for i, c in enumerate(course)]
     course_x = np.array(course_x)
     course_y = np.array(course_y)
     plt.figure()

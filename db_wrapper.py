@@ -30,7 +30,7 @@ def query_ways_within_radius(lat, lon, radius):
     point_in_merc_str = 'ST_Transform({0}, {1})'.format(pointgenstr, 900913) 
     # Build query string from the pieces:
     qstring = """SELECT ST_AsText({1}), osm_id, ST_AsText(way)
-              FROM {0} WHERE ST_DWithin(way, {1}, {2}) = true""".format(LINE_TABLE,
+              FROM {0} WHERE ST_DWithin(way, {1}, {2})""".format(LINE_TABLE,
                                                                         point_in_merc_str,
                                                                         radius)
     cur.execute(qstring)
@@ -39,6 +39,8 @@ def query_ways_within_radius(lat, lon, radius):
     # Making the PostGIS database do the lat/long -> mercator conversion.
     # The point is in form 'POINT(long, lat)' so extract the floating point coordinates
     # with regex
+    if not rows:
+        return None, None
     point_in_merc = re.findall(r"[-+]?\d*\.\d+|\d+", rows[0][0])
     point_in_merc = [float(d) for d in point_in_merc]
     ways = []
@@ -52,20 +54,6 @@ def query_ways_within_radius(lat, lon, radius):
         ways.append(way)
     return point_in_merc, ways 
 
-# Takes an array of ways, checks which nodes of the ways are within 'radius' meters of 'base_point'
-# Returns array of dicts, where each dict has the osm_id of the way, and the indices of the nodes
-# within the radius.
-def indices_of_nodes_within_radius(base_point, ways, radius):
-    results = []
-    for way in ways:
-        indices = [point_idx for point_idx, point in enumerate(way['points']) if utils.euclidean_dist(point, base_point) <= radius]
-        nodes = {'osm_id': way['osm_id'], 'indices': indices}
-        results.append(nodes)
-    return results
 
-
-def test(lat, lon, radius):
-    point, ways = query_ways_within_radius(lat, lon, radius)
-    print indices_of_nodes_within_radius(point, ways, radius)
 
 

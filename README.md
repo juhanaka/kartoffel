@@ -12,16 +12,12 @@ Store OSM data in Postgres
 ### Convert data to .osm
 * Download and install osmconvert: http://wiki.openstreetmap.org/wiki/Osmconvert
 * Run
-```
-osmconvert ./california-latest.osm.pbf >california.osm
-```
+```osmconvert ./california-latest.osm.pbf >california.osm```
 
 ### Filter everything but highways
 * Download and install osmfilter: http://wiki.openstreetmap.org/wiki/Osmfilter
 * Run
-```
-osmfilter ./california.osm --keep="highway=" -o=california_roads.osm
-```
+```osmfilter ./california.osm --keep="highway=" -o=california_roads.osm```
 
 ### Store to postgres
 * Install Postgres and get PostGIS (Google instructions)

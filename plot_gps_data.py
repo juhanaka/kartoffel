@@ -11,13 +11,14 @@ DELIMITER = ';'
 
 # Read file and return contents as a dict: {'measure_name': [value1, value2,...]}
 # Values are not converted but are raw strings.
-def read_gps_file(f):
-    headers = f.readline().split(DELIMITER)
+def read_gps_file(f, **kwargs):
+    delimiter = kwargs['delimiter'] if 'delimiter' in kwargs else DELIMITER
+    headers = f.readline().split(delimiter)
     headers = [header.strip() for header in headers]
     n_fields = len(headers)
     data = [[] for _ in range(n_fields)]
     for i, line in enumerate(f):
-        for j, el in enumerate(line.split(DELIMITER)):
+        for j, el in enumerate(line.split(delimiter)):
             data[j].append(el)
     data = {headers[i]: [d for d in data[i]] for i in range(n_fields)}
     return data

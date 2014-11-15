@@ -3,7 +3,7 @@ import re
 import utils
 
 
-DBNAME = 'osm'
+DBNAME = 'osm_slim'
 LINE_TABLE = 'planet_osm_line'
 
 
@@ -54,6 +54,13 @@ def query_ways_within_radius(lat, lon, radius):
         ways.append(way)
     return point_in_merc, ways 
 
-
+def get_node_id(way_id, index):
+    cur = connect()
+    qstring = 'SELECT nodes[{0}] FROM planet_osm_ways WHERE id = {1}'.format(index+1, way_id)
+    cur.execute(qstring)
+    rows = cur.fetchall()
+    if not len(rows):
+        print way_id, index
+    return rows[0] if len(rows) else None
 
 

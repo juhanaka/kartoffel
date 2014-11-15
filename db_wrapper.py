@@ -47,6 +47,8 @@ def query_ways_within_radius(lat, lon, radius):
     for row in rows:
         # second element of each row is the osm_id of the way
         osm_id = row[1]
+        if osm_id < 0:
+            continue
         # third element of each row is the linestring of the way as a string.
         # call linestring_to_point_array to convert the string into an array of points
         point_array = utils.linestring_to_point_array(row[2])

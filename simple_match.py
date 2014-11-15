@@ -53,7 +53,7 @@ def get_node_ids(matches):
             node_ids.append(None)
             continue
         # Don't query the same point twice
-        if i == 0 and match['way'] != matches[i-1]['way'] and match['index_of_segment'] != matches[i-1]['index_of_segment']:
+        if i == 0 or match['way'] != matches[i-1]['way'] or match['index_of_segment'] != matches[i-1]['index_of_segment']:
             start_node = get_node_id(match['way'], match['index_of_segment'])
             start_node = re.findall(r'\d+', str(start_node))[0]
             end_node = get_node_id(match['way'], match['index_of_segment'] + 1)

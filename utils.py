@@ -1,5 +1,7 @@
+import re
 import math
 import numpy as np
+from db_wrapper import get_node_id
 
 # Euclidean distance between two points
 def euclidean_dist(a, b):
@@ -40,3 +42,28 @@ def point_to_lineseg_dist(endpoints, point):
     # distance from point to its orthogonal projection on the line
     projection_vec = endpoints[0] + projection*u
     return euclidean_dist(projection_vec, point)
+
+def get_node_ids(matches):
+    node_ids = []
+    for i, match in enumerate(matches):
+        if match[0] is None:
+            node_ids.append(None)
+            continue
+        # Don't query the same point twice
+        if i == 0 or match[0] != matches[i-1][0] or match[1] != matches[i-1][1]:
+            start_node = get_node_id(match[0], match[1])
+            start_node = re.findall(r'\d+', str(start_node))[0]
+            end_node = get_node_id(match[0], match[1] + 1)
+            end_node = re.findall(r'\d+', str(end_node))[0]
+        node_ids.append((start_node, end_node))
+    return node_ids
+ 
+def write_to_file(node_ids, filename):
+    with open(filename, 'w') as f:
+        f.write('Segment start id, Segment end id\n')
+        for node in node_ids:
+            if node is None:
+                f.write('NA\n')
+            else:
+                f.write(node[0] + ', ' + node[1] + '\n')
+

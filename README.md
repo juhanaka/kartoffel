@@ -23,5 +23,8 @@ Store OSM data in Postgres
 * Install Postgres and get PostGIS (Google instructions)
 * Install osm2pgsql (on mac with homebrew: brew install osm2pgsql)
 * Create a Postgres database
+* Enable PostGIS on the db:
+    * Connect to db: ```psql databasename```
+    * In the db prompt: ```CREATE EXTENSION postgis;```
 * Run ```osm2pgsql -s -U username -d databasename /path/to/file.osm```
 

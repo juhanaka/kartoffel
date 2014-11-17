@@ -3,51 +3,50 @@ import math
 import db_wrapper
 import utils
 
-THRESHOLD_DISTANCE = 50
-LWR_TAU = 1
 GPS_SIGMA = 3.0
 
+def add_segments(ways):
+    for way in ways:
+        way['segments'] = []
+            
+        for i, point in enumerate(way['points']):
+            if i != 0:
+                way['segments'].append((way['points'][i-1], point))
+    return ways
 
 def add_distances(ways, base_point):
     for way in ways:
-        way['distances'] = [utils.euclidean_dist(point, base_point) for point in way['points']]
+        way['distances'] = [utils.point_to_lineseg_dist(segment, base_point) for segment in way['segments']]
     return ways
 
-
+# Add angle of the tangent of each segment
+# The tangent is the line between the two endpoints of the segment
 def add_tangents(ways):
     for way in ways:
-        betas = [lwr(way['points'], index, LWR_TAU) for index in range(len(way['points']))]
-        way['angles'] = [math.atan(beta) for beta in betas]
-    return ways
+        way['angles'] = []
+        for segment in way['segments']:
+            delta_y = segment[1][1] - segment[0][1]
+            delta_x = segment[1][0] - segment[0][0]
+            way['angles'].append(math.atan(delta_y / delta_x))
+    return ways 
 
 
+# Tangent score is the inner product of the tangent vector and inferred heading vector
+# Since we have the angles of both, the tangent is cosine squared of the angle between
+# the two vectors
 def add_tangent_scores(ways, base_angle):
     for way in ways:
-        tangent_scores = [math.cos(angle-base_angle)**2 for angle in way['angles']]
+        tangent_scores = [math.cos(angle-base_angle) for angle in way['angles']]
         way['tangent_scores'] = tangent_scores
     return ways
 
+# Distance score = Probability that observation came from a road segment
+# given that GPS error is Gaussian around the road segment with stdev sigma
 def add_distance_scores(ways, sigma):
     p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
     for way in ways:
         way['distance_scores'] = [p(dist) for dist in way['distances']]
     return ways
-
-
-def lwr(points, index, tau):
-    X = np.array([point[0] for point in points], dtype=np.float64)
-    X = np.add(X, -np.mean(X))
-    X = X.reshape((len(points), 1))
-    X = np.concatenate((X, np.ones((len(points),1))), axis=1)
-    Y = np.array([point[1] for point in points])
-    Y = np.add(Y, -np.mean(Y))
-    Y = Y.reshape(len(points), 1)
-    w = [math.exp(-utils.euclidean_dist(points[index], points[i])/(2*tau**2)) for i in range(len(points))]
-    W = np.diag(w)
-    XWXinv = np.linalg.pinv(np.dot(np.dot(X.T, W), X))
-    XWY = np.dot(X.T, np.dot(W, Y))
-    betas = np.dot(XWXinv, XWY)
-    return betas[0][0]
 
 
 # Takes an array of ways, checks which nodes of the ways are within 'radius' meters of 'base_point'
@@ -66,6 +65,7 @@ def test(lat, lon, radius):
     point, ways = db_wrapper.query_ways_within_radius(lat, lon, radius)
     if ways is None or point is None:
         return
+    ways = add_segments(ways)
     ways = add_distances(ways, point)
     ways = add_tangents(ways)
     ways = add_tangent_scores(ways, 0)

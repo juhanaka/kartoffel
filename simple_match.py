@@ -2,7 +2,7 @@ import re
 import sys
 from plot_gps_data import read_gps_file
 from db_wrapper import query_ways_within_radius, get_node_id
-from emission_probability import add_distances, add_segments
+from emission_probability import _add_distances, _add_segments
 
 DEFAULT_MAX_DISTANCE = 50
 
@@ -21,8 +21,8 @@ def simple_match(filename, **kwargs):
             min_way = None
             min_idx = None
             if ways:
-                add_segments(ways)
-                add_distances(ways, point_merc)
+                _add_segments(ways)
+                _add_distances(ways, point_merc)
                 for way in ways:
                     if way['osm_id'] < 0:
                         continue

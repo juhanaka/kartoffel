@@ -10,7 +10,7 @@ def _compute_distance_scores(segments1, segments2, base_distance):
             d3 = utils.point_to_lineseg_dist(segment2, segment1[0])
             d4 = utils.point_to_lineseg_dist(segment2, segment1[1])
             dist = min(d1,d2,d3,d4)
-            scores[i].append((1/(1+dist)))
+            scores[i].append(math.exp(-(1/10)*dist))
         sum_scores = sum(scores[i])
         scores[i] = [d/sum_scores for d in scores[i]]
     return scores

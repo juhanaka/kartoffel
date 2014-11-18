@@ -3,7 +3,7 @@ import re
 import utils
 
 
-DBNAME = 'osm_slim'
+DBNAME = 'osm_filtered'
 LINE_TABLE = 'planet_osm_line'
 
 

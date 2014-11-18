@@ -22,8 +22,7 @@ def viterbi(observations, **kwargs):
         if t == 0:
             continue
         emission_probabilities = compute_emission_probabilities(obs, radius, n)
-        transition_probabilities = compute_transition_probabilities(observations[t-1],
-                                                                    obs, value_table[t-1],
+        transition_probabilities = compute_transition_probabilities(value_table[t-1],
                                                                     emission_probabilities)
         value_table.append([])
         backtrack_table.append([])

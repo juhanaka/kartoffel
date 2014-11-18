@@ -1,7 +1,9 @@
 import math
 import utils
 
-def _compute_distance_scores(segments1, segments2, base_distance):
+BETA = 1.0/2.0
+
+def _compute_distance_scores(segments1, segments2):
     scores = [[] for _ in range(len(segments1))]
     for i, segment1 in enumerate(segments1):
         for segment2 in segments2:
@@ -10,15 +12,12 @@ def _compute_distance_scores(segments1, segments2, base_distance):
             d3 = utils.point_to_lineseg_dist(segment2, segment1[0])
             d4 = utils.point_to_lineseg_dist(segment2, segment1[1])
             dist = min(d1,d2,d3,d4)
-            scores[i].append(math.exp(-(1/10)*dist))
-        sum_scores = sum(scores[i])
-        scores[i] = [d/sum_scores for d in scores[i]]
+            scores[i].append(math.exp(-BETA*dist))
     return scores
 
-def compute_transition_probabilities(ob1, ob2, segments1, segments2):
+def compute_transition_probabilities(segments1, segments2):
     clean_segments1 = [s[2] for s in segments1]
     clean_segments2 = [s[2] for s in segments2]
-    base_distance = utils.euclidean_dist(ob1,ob2)
-    scores = _compute_distance_scores(clean_segments1, clean_segments2, base_distance)
+    scores = _compute_distance_scores(clean_segments1, clean_segments2)
     return scores
 

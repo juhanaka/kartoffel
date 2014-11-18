@@ -4,12 +4,13 @@ import utils
 
 
 DBNAME = 'osm_slim'
+USERNAME='juhanakangaspunta'
 LINE_TABLE = 'planet_osm_line'
 
 
 def connect():
     try:
-        conn = psycopg2.connect("dbname='"+DBNAME+"' user='juhanakangaspunta' host='localhost'")
+        conn = psycopg2.connect("dbname='"+DBNAME+"' user='"+USERNAME+"' host='localhost'")
     except:
         print 'Unable to connect to database ' + DBNAME
     return conn.cursor()

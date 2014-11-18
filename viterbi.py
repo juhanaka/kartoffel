@@ -46,9 +46,9 @@ def viterbi(observations, **kwargs):
         return
     return node_ids
 
-def run_viterbi(filename, **kwargs):
+def run_viterbi(observations_filename, **kwargs):
     observations = []
-    with open(filename) as f:
+    with open(observations_filename) as f:
         for i, line in enumerate(f):
             if i == 0:
                 continue

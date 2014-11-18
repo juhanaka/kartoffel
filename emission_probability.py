@@ -76,6 +76,9 @@ def _get_top_n(ways, n):
     l.sort(key=lambda el: -el[3])
     return l[:n]
 
+# Observation provided in form: (lat, lon, course) all in degrees
+# Radius in meters
+# n is the number of segments returned with the top emission probabilities
 def compute_emission_probabilities(observation, radius, n):
     lat, lon, course = observation
     course = math.radians(-course+90)

@@ -49,3 +49,14 @@ def viterbi(observations, **kwargs):
         return
     return result_sequence[::-1]
 
+def run_viterbi(filename, **kwargs):
+    observations = []
+    with open(filename) as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                continue
+            line = line.split(',')
+            observations.append((float(line[3]), float(line[4]), float(line[7])))
+    start = kwargs.pop('start') if 'start' in kwargs else 0
+    end = kwargs.pop('end') if 'end' in kwargs else len(observations)
+    return viterbi(observations[start:end], **kwargs)

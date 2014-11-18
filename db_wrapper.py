@@ -3,8 +3,10 @@ import re
 import utils
 
 
+
 DBNAME = 'gis'#'osm_slim'
 USERNAME='toto2'#'juhanakangaspunta'
+
 LINE_TABLE = 'planet_osm_line'
 
 

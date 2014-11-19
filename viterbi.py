@@ -6,12 +6,16 @@ RADIUS = 20
 N = 10
 WINDOW = 50
 
-
+# Viterbi algorithm
+# kwargs: filename to write in, radius to look segments from, n max number of states considered at time t
+# window size
 def viterbi(observations, **kwargs):
     radius = kwargs['radius'] if 'radius' in kwargs else RADIUS
     filename = kwargs['filename'] if 'filename' in kwargs else None
     window = kwargs['window'] if 'window' in kwargs else WINDOW
     n = kwargs['n'] if 'n' in kwargs else N
+
+    print 'Running viterbi. window size: {0}, max states {1}, max radius {2}'.format(window,n,radius)
 
     result_sequence = []
     value_table = []

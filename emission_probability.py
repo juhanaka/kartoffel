@@ -56,7 +56,9 @@ def _add_tangent_scores(ways, base_angle):
         tangent_scores = []
         for angle in way['angles']:
             if not way['oneway']: 
-                diff_angle = abs(angle-base_angle) % math.pi
+                converted_angle = angle % math.pi
+                converted_base = base_angle % math.pi
+                diff_angle = base_angle - angle
             else:
                 diff_angle = angle-base_angle
             tangent_scores.append((math.cos(diff_angle)+1)/2)

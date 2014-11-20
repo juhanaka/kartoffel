@@ -41,7 +41,10 @@ def _add_tangents(ways):
         for segment in way['segments']:
             delta_y = segment[1][1] - segment[0][1]
             delta_x = segment[1][0] - segment[0][0]
-            way['angles'].append(math.atan(delta_y / delta_x) if delta_x !=0 else math.pi/2)
+            if delta_x == 0:
+                way['angles'].append(math.pi/2 if delta_y > 0 else -math.pi/2)
+            else:
+                way['angles'].append(math.atan2(delta_y, delta_x) if delta_x !=0 else math.pi/2)
     return ways 
 
 
@@ -50,7 +53,15 @@ def _add_tangents(ways):
 # the two vectors
 def _add_tangent_scores(ways, base_angle):
     for way in ways:
-        tangent_scores = [math.cos(angle-base_angle) for angle in way['angles']]
+        tangent_scores = []
+        for angle in way['angles']:
+            if not way['oneway']: 
+                converted_angle = angle % math.pi
+                converted_base = base_angle % math.pi
+                diff_angle = base_angle - angle
+            else:
+                diff_angle = angle-base_angle
+            tangent_scores.append((math.cos(diff_angle)+1)/2)
         way['tangent_scores'] = tangent_scores
     return ways
 
@@ -93,18 +104,3 @@ def compute_emission_probabilities(observation, radius, n):
     ways = _add_emission_probabilities(ways)
     return _get_top_n(ways, n)
 
-
-#def test(lat, lon, radius):
-#    point, ways = query_ways_within_radius(lat, lon, radius)
-#    if ways is None or point is None:
-#        return
-#    ways = add_segments(ways)
-#    ways = add_distances(ways, point)
-#    ways = add_tangents(ways)
-#    ways = add_tangent_scores(ways, 0)
-#    ways = add_distance_scores(ways, GPS_SIGMA)
-#    ways = add_emission_probabilities(ways)
-#    import pprint
-#    pp = pprint.PrettyPrinter(indent=2)
-#    print pp.pprint(ways)
-#    return ways

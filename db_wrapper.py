@@ -32,7 +32,7 @@ def query_ways_within_radius(lat, lon, radius):
     # PostGIS function to transform point from lat/long to mercator:
     point_in_merc_str = 'ST_Transform({0}, {1})'.format(pointgenstr, 900913) 
     # Build query string from the pieces:
-    qstring = """SELECT ST_AsText({1}), osm_id, ST_AsText(way)
+    qstring = """SELECT ST_AsText({1}), osm_id, ST_AsText(way), oneway
               FROM {0} WHERE ST_DWithin(way, {1}, {2})""".format(LINE_TABLE,
                                                                         point_in_merc_str,
                                                                         radius)
@@ -52,10 +52,11 @@ def query_ways_within_radius(lat, lon, radius):
         osm_id = row[1]
         if osm_id < 0:
             continue
+        oneway = True if row[3] == 'yes' else False
         # third element of each row is the linestring of the way as a string.
         # call linestring_to_point_array to convert the string into an array of points
         point_array = utils.linestring_to_point_array(row[2])
-        way = {'osm_id': osm_id, 'points': point_array}
+        way = {'osm_id': osm_id, 'points': point_array, 'oneway': oneway}
         ways.append(way)
     return point_in_merc, ways 
 

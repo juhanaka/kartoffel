@@ -1,15 +1,31 @@
 import math
 import utils
 
-W_DIST = 1.0
-W_BT = 0.0
+W_DIST = 0.8
+W_BT = 0.2
 
-                
+# Bactrack score assigns a penalty on going back through where you came from.
+# If the previous segment's start is in the next segment's endpoints, i.e.
+# you're backtracking through the start point to get to the next one, return 0.
+# Else return 1
 def _compute_backtrack_scores(segments1, segments2):
     scores = [[] for _ in range(len(segments1))]
     for i, segment1 in enumerate(segments1):
         for segment2 in segments2:
-            scores[i].append(1)
+            if segment1['direction'] is None or segment1['endpoints'] == segment2['endpoints']:
+                scores[i].append(1.0)
+                continue
+            elif segment1['direction'] == 1:
+                segment1_start = segment1['endpoints'][0]
+                segment1_end = segment1['endpoints'][1]
+            elif segment1['direction'] == -1:
+                segment1_end = segment1['endpoints'][0]
+                segment1_start = segment1['endpoints'][1]
+
+            if segment1_start in segment2['endpoints']:
+                scores[i].append(0.0)
+            else:
+                scores[i].append(1.0)
     return scores
 
 def _compute_distance_scores(obs1, obs2, segments1, segments2):

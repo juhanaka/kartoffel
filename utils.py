@@ -48,7 +48,7 @@ def get_projection(endpoints, point):
     return projection
 
 def get_node_gps_points(matches):
-    node_ids = []
+    node_gps = []
     for i, match in enumerate(matches):
         if match['way_osm_id'] is None:
             node_ids.append(None)
@@ -57,8 +57,11 @@ def get_node_gps_points(matches):
         if i == 0 or match['way_osm_id'] != matches[i-1]['way_osm_id'] or match['index_in_way'] != matches[i-1]['index_in_way']:
             start_node = get_node_gps_point(match['way_osm_id'], match['index_in_way'])
             end_node = get_node_gps_point(match['way_osm_id'], match['index_in_way'] + 1)
-        node_ids.append((start_node, end_node))
-    return node_ids
+        if match['direction'] == -1:
+            node_gps.append((end_node, start_node))
+        else:
+            node_gps.append((start_node, end_node))
+    return node_gps
 
 def get_node_ids(matches):
     node_ids = []
@@ -70,9 +73,12 @@ def get_node_ids(matches):
         if i == 0 or match['way_osm_id'] != matches[i-1]['way_osm_id'] or match['index_in_way'] != matches[i-1]['index_in_way']:
             start_node = get_node_id(match['way_osm_id'], match['index_in_way'])
             start_node = re.findall(r'\d+', str(start_node))[0]
-            end_node = get_node_id(match['way_osm_id'], match['index_in_way'] + 1)
+            end_node = get_node_id(match['way_osm_id'], match['index_in_way']+1)
             end_node = re.findall(r'\d+', str(end_node))[0]
-        node_ids.append((start_node, end_node))
+        if match['direction'] == -1:
+            node_ids.append((end_node, start_node))
+        else:
+            node_ids.append((start_node, end_node))
     return node_ids
  
 def write_to_file(node_ids, filename):
@@ -83,4 +89,19 @@ def write_to_file(node_ids, filename):
                 f.write('NA\n')
             else:
                 f.write(node[0] + ', ' + node[1] + '\n')
+
+# Calculates the direction we're traversing the segment based on previous segment
+# If the segments are not the same, the start point of the segment is that point which
+# is in the endpoints of the previous segment. If the segments are not connected, we 
+# don't know the direction so return None. If the segment is the same as the previous segment,
+# return previous segment's direction.
+def calculate_direction(previous_segment, segment):
+    if segment['endpoints'] == previous_segment['endpoints']:
+        return previous_segment['direction']
+    elif segment['endpoints'][0] in previous_segment['endpoints']:
+        return 1
+    elif segment['endpoints'][1] in previous_segment['endpoints']:
+        return -1
+    else:
+        return None
 

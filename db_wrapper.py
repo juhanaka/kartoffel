@@ -73,7 +73,7 @@ def get_node_gps_point(way_id, index):
     cur.execute(qstring)
     rows = cur.fetchall()
     if not len(rows) or not len(rows[0]):
-        print way_id, index
+        return (None, None)
     points = utils.linestring_to_point_array(rows[0][0])
     return points[index] if len(points) else None
 

@@ -24,6 +24,7 @@ def viterbi(observations, **kwargs):
     segments, emission_probabilities, point = compute_emission_probabilities(observations[0],radius, n)
     for i, segment in enumerate(segments):
         segments[i]['previous'] = None 
+        segments[i]['direction'] = None
     segments_table.append(segments)
     probabilities_table.append(emission_probabilities)
     for window_idx in range(len(observations) / window + 1):
@@ -48,6 +49,7 @@ def viterbi(observations, **kwargs):
                 idx, highest_probability = max(enumerate(candidates), key=lambda x: x[1])
                 probabilities_table[t].append(highest_probability)
                 segments[i]['previous'] = idx
+                segments[i]['direction'] = utils.calculate_direction(segments_table[t-1][idx], segments[i])
                 segments_table[t].append(segments[i])
         last_idx, last_val = max(enumerate(probabilities_table[t]), key=lambda x: x[1])
         idx = last_idx
@@ -64,7 +66,11 @@ def viterbi(observations, **kwargs):
         node_gps = utils.get_node_gps_points(result_sequence)
         start_points = ['{0},{1}'.format(point[0][0], point[0][1]) for point in node_gps]
         end_points = ['{0},{1}'.format(point[1][0], point[1][1]) for point in node_gps]
-        return start_points, end_points
+        with open('result_nodes.csv', 'w') as resf:
+            for i, point in enumerate(start_points):
+                resf.write(point+'\n')
+                resf.write(end_points[i]+'\n')
+        return
     node_ids = utils.get_node_ids(result_sequence)
     if filename is not None:
         utils.write_to_file(node_ids, filename)

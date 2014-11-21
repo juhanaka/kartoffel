@@ -4,8 +4,8 @@ from db_wrapper import query_ways_within_radius
 import utils
 
 GPS_SIGMA = 10.0
-W_DIST = 0.90
-W_TANG = 0.10
+W_DIST = 0.8
+W_TANG = 0.2
 
 # SUMMARY
 #--------------------
@@ -13,7 +13,6 @@ W_TANG = 0.10
 # OSM ways within a certain distance of the observation. A way in the ways array
 # is a dict: ways[0] = {'osm_id': 264056469L, 'points': [(x1,y1), (x2,y2) ... ] 
 # With each function, the ways dictionary is extended with different attributes.
-
 
 
 # A segment is the line between two consecutive nodes
@@ -58,7 +57,7 @@ def _add_tangent_scores(ways, base_angle):
             if not way['oneway']: 
                 converted_angle = angle % math.pi
                 converted_base = base_angle % math.pi
-                diff_angle = base_angle - angle
+                diff_angle = converted_angle - converted_base
             else:
                 diff_angle = angle-base_angle
             tangent_scores.append((math.cos(diff_angle)+1)/2)
@@ -80,18 +79,23 @@ def _add_emission_probabilities(ways):
 
 # Return n segments with highest emission probabilities
 def _get_top_n(ways, n):
-    l = []
+    segments = []
+    probabilities = []
     for way in ways:
         for i, p in enumerate(way['emission_probabilities']):
-            l.append((way['osm_id'], i, way['segments'][i], p))
-    l.sort(key=lambda el: -el[3])
-    return l[:n]
+            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i], 'direction': None})
+            probabilities.append(p)
+    combined = zip(segments, probabilities)
+    combined.sort(key=lambda el: -el[1])
+    segments = [x[0] for x in combined]
+    probabilities = [x[1] for x in combined]
+    return segments[:n], probabilities[:n]
 
 # Observation provided in form: (lat, lon, course) all in degrees
 # Radius in meters
 # n is the number of segments returned with the top emission probabilities
 def compute_emission_probabilities(observation, radius, n):
-    lat, lon, course = observation
+    lat, lon, course, speed = observation
     course = math.radians(-course+90)
     point, ways = query_ways_within_radius(lat, lon, radius)
     if ways is None or point is None:
@@ -102,5 +106,6 @@ def compute_emission_probabilities(observation, radius, n):
     ways = _add_tangent_scores(ways, course)
     ways = _add_distance_scores(ways, GPS_SIGMA)
     ways = _add_emission_probabilities(ways)
-    return _get_top_n(ways, n)
+    segments, probabilities = _get_top_n(ways, n)
+    return segments, probabilities, point
 

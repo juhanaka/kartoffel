@@ -5,13 +5,14 @@ import utils
 
 DBNAME = 'osm_filtered'
 LINE_TABLE = 'planet_osm_line'
+LATLONG_DBNAME = 'osm_latlong'
 
-
-def connect():
+def connect(dbname):
     try:
-        conn = psycopg2.connect("dbname='"+DBNAME+"' user='juhanakangaspunta' host='localhost'")
+        conn = psycopg2.connect("dbname='"+dbname+"' user='juhanakangaspunta' host='localhost'")
     except:
-        print 'Unable to connect to database ' + DBNAME
+        print 'Unable to connect to database ' + dbname
+        raise
     return conn.cursor()
 
 # Query the database for ways that have nodes within 'radius' meters from the point defined
@@ -21,7 +22,7 @@ def connect():
 # 2) An array containing dictionaries of all the ways that are within the radius.
 #    The dictionary contains the osm_id of the way and a tuple of node-tuples in mercator projection.
 def query_ways_within_radius(lat, lon, radius):
-    cur = connect()
+    cur = connect(DBNAME)
     # PostGIS format of a point. Long/Lat as this stage:
     pointstr = "'POINT({0} {1})'".format(lon, lat) 
     # PostGIS function to generate a point from text:
@@ -58,7 +59,7 @@ def query_ways_within_radius(lat, lon, radius):
     return point_in_merc, ways 
 
 def get_node_id(way_id, index):
-    cur = connect()
+    cur = connect(DBNAME)
     qstring = 'SELECT nodes[{0}] FROM planet_osm_ways WHERE id = {1}'.format(index+1, way_id)
     cur.execute(qstring)
     rows = cur.fetchall()
@@ -66,4 +67,13 @@ def get_node_id(way_id, index):
         print way_id, index
     return rows[0] if len(rows) else None
 
+def get_node_gps_point(way_id, index):
+    cur = connect(LATLONG_DBNAME)
+    qstring = 'SELECT ST_AsText(way) FROM planet_osm_line WHERE osm_id = {0}'.format(way_id)
+    cur.execute(qstring)
+    rows = cur.fetchall()
+    if not len(rows) or not len(rows[0]):
+        print way_id, index
+    points = utils.linestring_to_point_array(rows[0][0])
+    return points[index] if len(points) else None
 

@@ -14,16 +14,18 @@ def viterbi(observations, **kwargs):
     filename = kwargs['filename'] if 'filename' in kwargs else None
     window = kwargs['window'] if 'window' in kwargs else WINDOW
     n = kwargs['n'] if 'n' in kwargs else N
+    return_gps = kwargs['return_gps'] if 'return_gps' in kwargs else False
 
     print 'Running viterbi. window size: {0}, max states {1}, max radius {2}'.format(window,n,radius)
 
     result_sequence = []
-    value_table = []
-    backtrack_table = []
-    value_table.append(compute_emission_probabilities(observations[0],
-                                                      radius, n))
-    backtrack_table.append(compute_emission_probabilities(observations[0],
-                                                          radius, n))
+    segments_table = []
+    probabilities_table = []
+    segments, emission_probabilities, point = compute_emission_probabilities(observations[0],radius, n)
+    for i, segment in enumerate(segments):
+        segments[i]['previous'] = None 
+    segments_table.append(segments)
+    probabilities_table.append(emission_probabilities)
     for window_idx in range(len(observations) / window + 1):
         current_obs = observations[window_idx*window:(window_idx+1)*window]
         if (len(current_obs) == 0):
@@ -31,28 +33,38 @@ def viterbi(observations, **kwargs):
         for t, obs in enumerate(current_obs):
             if t == 0:
                 continue
-            emission_probabilities = compute_emission_probabilities(obs, radius, n)
-            transition_probabilities = compute_transition_probabilities(value_table[t-1],
-                                                                        emission_probabilities)
-            value_table.append([])
-            backtrack_table.append([])
-            for i, segment_i_at_t in enumerate(emission_probabilities):
+            previous_point = point
+            segments, emission_probabilities, point = compute_emission_probabilities(obs, radius, n)
+            transition_probabilities = compute_transition_probabilities(previous_point,
+                                                                        point,
+                                                                        segments_table[t-1],
+                                                                        segments)
+            segments_table.append([])
+            probabilities_table.append([])
+            for i, emission_probability in enumerate(emission_probabilities):
                 candidates = []
-                for j, segment_j_at_tminus1 in enumerate(value_table[t-1]):
-                    candidates.append(segment_j_at_tminus1[3] * transition_probabilities[j][i] * emission_probabilities[i][3])
-                idx, value = max(enumerate(candidates), key=lambda x: x[1])
-                value_table[t].append((segment_i_at_t[0], segment_i_at_t[1], segment_i_at_t[2], value))
-                backtrack_table[t].append((segment_i_at_t[0], segment_i_at_t[1], segment_i_at_t[2], idx))
-        last_idx, last_val = max(enumerate(value_table[t]), key=lambda x: x[1][3])
+                for j, previous_probability in enumerate(probabilities_table[t-1]):
+                    candidates.append(previous_probability * transition_probabilities[j][i] * emission_probability)
+                idx, highest_probability = max(enumerate(candidates), key=lambda x: x[1])
+                probabilities_table[t].append(highest_probability)
+                segments[i]['previous'] = idx
+                segments_table[t].append(segments[i])
+        last_idx, last_val = max(enumerate(probabilities_table[t]), key=lambda x: x[1])
         idx = last_idx
         intermediate_result = []
         for _t in range(len(current_obs))[::-1]:
-            cur =  backtrack_table[_t][idx]
-            idx = backtrack_table[_t][idx][3]
+            cur =  segments_table[_t][idx]
             intermediate_result.append(cur)
-        value_table = [[value_table[t][last_idx]]]
-        backtrack_table = [[backtrack_table[t][last_idx]]]
+            if _t != 0:
+                idx = cur['previous']
+        probabilities_table = [[1]]
+        segments_table = [[segments_table[t][last_idx]]]
         result_sequence = result_sequence + intermediate_result[::-1]
+    if return_gps:
+        node_gps = utils.get_node_gps_points(result_sequence)
+        start_points = ['{0},{1}'.format(point[0][0], point[0][1]) for point in node_gps]
+        end_points = ['{0},{1}'.format(point[1][0], point[1][1]) for point in node_gps]
+        return start_points, end_points
     node_ids = utils.get_node_ids(result_sequence)
     if filename is not None:
         utils.write_to_file(node_ids, filename)
@@ -66,9 +78,10 @@ def run_viterbi(observations_filename, **kwargs):
             if i == 0:
                 continue
             line = line.split(',')
-            observations.append((float(line[3]), float(line[4]), float(line[7])))
+            observations.append((float(line[3]), float(line[4]), float(line[7]), float(line[6])))
     start = kwargs.pop('start') if 'start' in kwargs else 0
     end = kwargs.pop('end') if 'end' in kwargs else len(observations)
     return viterbi(observations[start:end], **kwargs)
+
 
 

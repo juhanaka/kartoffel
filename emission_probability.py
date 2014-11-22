@@ -83,7 +83,8 @@ def _get_top_n(ways, n):
     l = []
     for way in ways:
         for i, p in enumerate(way['emission_probabilities']):
-            l.append((way['osm_id'], i, way['segments'][i], p))
+            l.append((way['osm_id'], i, way['segments'][i], p,way[distance_scores][i],way[tangent_scores][i]))
+             # Add result of functions for labeling
     l.sort(key=lambda el: -el[3])
     return l[:n]
 

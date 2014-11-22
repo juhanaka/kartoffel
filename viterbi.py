@@ -60,6 +60,13 @@ def viterbi(observations, **kwargs):
     return node_ids
 
 def run_viterbi(observations_filename, **kwargs):
+    observations = read_observations(observations_filename)
+    start = kwargs.pop('start') if 'start' in kwargs else 0
+    end = kwargs.pop('end') if 'end' in kwargs else len(observations)
+    return viterbi(observations[start:end], **kwargs)
+
+
+def read_observations(observations_filename):
     observations = []
     with open(observations_filename) as f:
         for i, line in enumerate(f):
@@ -67,8 +74,5 @@ def run_viterbi(observations_filename, **kwargs):
                 continue
             line = line.split(',')
             observations.append((float(line[3]), float(line[4]), float(line[7])))
-    start = kwargs.pop('start') if 'start' in kwargs else 0
-    end = kwargs.pop('end') if 'end' in kwargs else len(observations)
-    return viterbi(observations[start:end], **kwargs)
-
+return observations
 

@@ -1,6 +1,6 @@
 import utils
 from emission_probability import compute_emission_probabilities
-from transition_probability import compute_transition_probabilities
+from transition_probability import compute_transition_probabilities_training
 
 RADIUS = 20
 N = 10
@@ -10,6 +10,7 @@ WINDOW = 50
 # kwargs: filename to write in, radius to look segments from, n max number of states considered at time t
 # window size
 def viterbi(observations, **kwargs):
+    TRANSITION_PROBS = []
     radius = kwargs['radius'] if 'radius' in kwargs else RADIUS
     filename = kwargs['filename'] if 'filename' in kwargs else None
     window = kwargs['window'] if 'window' in kwargs else WINDOW
@@ -32,14 +33,17 @@ def viterbi(observations, **kwargs):
         if (len(current_obs) == 0):
             break
         for t, obs in enumerate(current_obs):
+            TRANSITION_PROBS.append([])
             if t == 0:
                 continue
             previous_point = point
             segments, emission_probabilities, point = compute_emission_probabilities(obs, radius, n)
-            transition_probabilities = compute_transition_probabilities(previous_point,
+            transition_probabilities = compute_transition_probabilities_training(previous_point,
                                                                         point,
                                                                         segments_table[t-1],
-                                                                        segments)
+                                                                        segments,
+                                                                        window_idx*window+t,
+                                                                        TRANSITION_PROBS)
             segments_table.append([])
             probabilities_table.append([])
             for i, emission_probability in enumerate(emission_probabilities):
@@ -62,20 +66,16 @@ def viterbi(observations, **kwargs):
         probabilities_table = [[1]]
         segments_table = [[segments_table[t][last_idx]]]
         result_sequence = result_sequence + intermediate_result[::-1]
-    if return_gps:
-        node_gps = utils.get_node_gps_points(result_sequence)
-        start_points = ['{0},{1}'.format(point[0][0], point[0][1]) for point in node_gps]
-        end_points = ['{0},{1}'.format(point[1][0], point[1][1]) for point in node_gps]
-        with open('result_nodes.csv', 'w') as resf:
-            for i, point in enumerate(start_points):
-                resf.write(point+'\n')
-                resf.write(end_points[i]+'\n')
-        return
-    node_ids = utils.get_node_ids(result_sequence)
-    if filename is not None:
-        utils.write_to_file(node_ids, filename)
-        return
-    return node_ids
+    for t, cur in enumerate(result_sequence):
+        if t == 0:
+            continue
+        prev = result_sequence[t-1]
+        prev_str = '{0},{1}'.format(prev['way_osm_id'], prev['index_in_way'])
+        cur_str = '{0},{1}'.format(cur['way_osm_id'], cur['index_in_way'])
+        TRANSITION_PROBS[t] = {prev_str : TRANSITION_PROBS[t][prev_str]}
+        TRANSITION_PROBS[t][prev_str][cur_str][2] = 1
+
+    return TRANSITION_PROBS
 
 def run_viterbi(observations_filename, **kwargs):
     observations = []

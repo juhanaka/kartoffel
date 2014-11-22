@@ -1,8 +1,8 @@
 import math
 import utils
 
-W_DIST = 0.8
-W_BT = 0.2
+W_DIST = 0.2
+W_BT = 0.8
 
 # Bactrack score assigns a penalty on going back through where you came from.
 # If the previous segment's start is in the next segment's endpoints, i.e.
@@ -37,7 +37,7 @@ def _compute_distance_scores(obs1, obs2, segments1, segments2):
             projection2 = utils.get_projection(segment2['endpoints'], obs2)
             dist = utils.euclidean_dist(projection1, projection2)
             dist_diff = abs(dist - base_dist)
-            scores[i].append((1.0/(1.0+dist_diff))**(1/2))
+            scores[i].append(1.0/(1.0+dist_diff))
     return scores
 
 
@@ -49,6 +49,24 @@ def compute_transition_probabilities(obs1, obs2, segments1, segments2):
     scores = [[] for _ in range(len(dist_scores))]
     for i in range(len(dist_scores)):
         for j in range(len(dist_scores[0])):
+            scores[i].append(W_DIST*dist_scores[i][j] + W_BT*backtrack_scores[i][j])
+    return scores
+
+def compute_transition_probabilities_training(obs1, obs2, segments1, segments2, t, TRANSITION_PROBS):
+    obs1 = obs1[:2]
+    obs2 = obs2[:2]
+    dist_scores = _compute_distance_scores(obs1, obs2, segments1, segments2)
+    backtrack_scores = _compute_backtrack_scores(segments1, segments2)
+    scores = [[] for _ in range(len(dist_scores))]
+    TRANSITION_PROBS[t] = {}
+    for i in range(len(dist_scores)):
+        for j in range(len(dist_scores[0])):
+            segment1_str = '{0},{1}'.format(segments1[i]['way_osm_id'], segments1[i]['index_in_way'])
+            segment2_str = '{0},{1}'.format(segments2[j]['way_osm_id'], segments2[j]['index_in_way'])
+            if segment1_str in TRANSITION_PROBS[t]:
+                TRANSITION_PROBS[t][segment1_str][segment2_str] = [dist_scores[i][j], backtrack_scores[i][j], 0]
+            else:
+                TRANSITION_PROBS[t][segment1_str] = {segment2_str: [dist_scores[i][j], backtrack_scores[i][j], 0]}
             scores[i].append(W_DIST*dist_scores[i][j] + W_BT*backtrack_scores[i][j])
     return scores
 

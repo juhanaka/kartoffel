@@ -67,7 +67,7 @@ def viterbi(observations, **kwargs):
         segments_table = [[segments_table[t][last_idx]]]
         result_sequence = result_sequence + intermediate_result[::-1]
     for t, cur in enumerate(result_sequence):
-        if t == 0:
+        if t == 0 or not TRANSITION_PROBS[t]:
             continue
         prev = result_sequence[t-1]
         prev_str = '{0},{1}'.format(prev['way_osm_id'], prev['index_in_way'])

@@ -3,13 +3,14 @@ import re
 import utils
 
 
-DBNAME = 'osm_filtered'
+DBNAME = 'gis'#'osm_filtered'
+USERNAME = 'toto2' #juhanakangaspunta
 LINE_TABLE = 'planet_osm_line'
 LATLONG_DBNAME = 'osm_latlong'
 
 def connect(dbname):
     try:
-        conn = psycopg2.connect("dbname='"+dbname+"' user='juhanakangaspunta' host='localhost'")
+        conn = psycopg2.connect("dbname='"+dbname+"' user='"+USERNAME+"' host='localhost'")
     except:
         print 'Unable to connect to database ' + dbname
         raise

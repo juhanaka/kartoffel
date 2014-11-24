@@ -3,7 +3,7 @@ import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 10.0
+GPS_SIGMA = 30.0
 W_DIST = 0.8
 W_TANG = 0.2
 
@@ -83,7 +83,7 @@ def _get_top_n(ways, n):
     probabilities = []
     for way in ways:
         for i, p in enumerate(way['emission_probabilities']):
-            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i], 'direction': None})
+            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i],'direction': None, 'distance_score':way['distance_scores'][i], 'tangent_score':way['tangent_scores'][i]})
             probabilities.append(p)
     combined = zip(segments, probabilities)
     combined.sort(key=lambda el: -el[1])
@@ -95,6 +95,7 @@ def _get_top_n(ways, n):
 # Radius in meters
 # n is the number of segments returned with the top emission probabilities
 def compute_emission_probabilities(observation, radius, n):
+    #print(observation)
     lat, lon, course, speed = observation
     course = math.radians(-course+90)
     point, ways = query_ways_within_radius(lat, lon, radius)

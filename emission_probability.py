@@ -3,7 +3,7 @@ import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 10.0
+GPS_SIGMA = 30.0
 W_DIST = 0.8
 W_TANG = 0.2
 

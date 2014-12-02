@@ -39,7 +39,7 @@ def label_emission_data(file_to_label, **kwargs):
     tmpfile = 'results_file'
     viterbi.run_viterbi(file_to_label,filename=tmpfile, radius=radius, window=window,n=n)
     observations = read_observations(file_to_label)
-    results = read_resulting_path('results_file')
+    results = read_resulting_path(tmpfile)
     labeled =[]
 
     for t, obs in enumerate(observations):

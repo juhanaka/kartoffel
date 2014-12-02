@@ -21,9 +21,9 @@ def label_transition_data(filename_to_label,  **kwargs):
                 for seg1 in transition_probabilities[t]:
                     for seg2 in transition_probabilities[t][seg1]:
                         if (transition_probabilities[t][seg1][seg2][2]==0 ):
-                            f.write('-1, '+str(transition_probabilities[t][seg1][seg2][0]) + ', ' + str(transition_probabilities[t][seg1][seg2][1]) +'\n')
+                            f.write('-1, '+str(transition_probabilities[t][seg1][seg2][0]) + ', ' + str(transition_probabilities[t][seg1][seg2][1]) +','+str(seg1)+','+str(seg2)+ '\n')
                         else:
-                            f.write('1, ' +str(transition_probabilities[t][seg1][seg2][0]) + ', ' + str(transition_probabilities[t][seg1][seg2][1]) +'\n')
+                            f.write('1, ' +str(transition_probabilities[t][seg1][seg2][0]) + ', ' + str(transition_probabilities[t][seg1][seg2][1]) +','+str(seg1)+','+str(seg2)+ '\n')
         return
     return
                     

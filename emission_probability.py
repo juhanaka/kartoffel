@@ -83,7 +83,7 @@ def _get_top_n(ways, n):
     probabilities = []
     for way in ways:
         for i, p in enumerate(way['emission_probabilities']):
-            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i],'direction': None, 'distance_score':way['distance_scores'][i], 'tangent_score':way['tangent_scores'][i]})
+            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i],'direction': None, 'distance_score':way['distance_scores'][i], 'tangent_score':way['tangent_scores'][i], 'distance':way['distances'][i]})
             probabilities.append(p)
     combined = zip(segments, probabilities)
     combined.sort(key=lambda el: -el[1])

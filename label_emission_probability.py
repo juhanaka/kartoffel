@@ -16,7 +16,7 @@ def read_resulting_path(resulting_path_filename):
                 continue
             line = line.split(',')
             results.append((float(line[0]), float(line[1])))
-        return results
+    return results
 
 # Function to read the observations
 def read_observations(filename):
@@ -35,9 +35,10 @@ def label_emission_data(file_to_label, **kwargs):
     filename = kwargs['filename'] if 'filename' in kwargs else None
     window = kwargs['window'] if 'window' in kwargs else WINDOW
     n = kwargs['n'] if 'n' in kwargs else N
+    distance_only = kwargs['distance_only'] if 'distance_only' in kwargs else False
 
-    tmpfile = 'results_file'
-    viterbi.run_viterbi(file_to_label,filename=tmpfile, radius=radius, window=window,n=n)
+    tmpfile = 'matched_files/Shopping2Rental_matched.csv'
+    #viterbi.run_viterbi(file_to_label,filename=tmpfile, radius=radius, window=window,n=n)
     observations = read_observations(file_to_label)
     results = read_resulting_path(tmpfile)
     labeled =[]
@@ -50,14 +51,21 @@ def label_emission_data(file_to_label, **kwargs):
             node_ids=(start_node[0],end_node[0])
             node_ids2 = (end_node[0],start_node[0])
             if ((node_ids == results[t]) or (node_ids2 == results[t])):
-                labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], 1))
+                if (distance_only):
+                    labeled.append(seg['distance'])
+                else:
+                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], 1))
             else:
-                labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], -1))
+                if (distance_only == False):
+                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], -1))
     if filename is not None:
         with open(filename, 'w') as f:
             f.write('Label, Distance Score, Tangent Score \n')
             for l in labeled:
-                f.write(str(l[3]) + ', ' + str(l[1]) +', '+str(l[2]) + '\n')
+                if (distance_only):
+                    f.write(str(l) + '\n')
+                else:
+                    f.write(str(l[3]) + ', ' + str(l[1]) +', '+str(l[2]) + '\n')
         return
     return labeled
 

@@ -37,7 +37,7 @@ def label_emission_data(file_to_label, **kwargs):
     n = kwargs['n'] if 'n' in kwargs else N
     distance_only = kwargs['distance_only'] if 'distance_only' in kwargs else False
 
-    tmpfile = 'matched_files/Shopping2Rental_matched.csv'
+    tmpfile = 'matched_files/Rental2Youssef_matched.csv'
     #viterbi.run_viterbi(file_to_label,filename=tmpfile, radius=radius, window=window,n=n)
     observations = read_observations(file_to_label)
     results = read_resulting_path(tmpfile)

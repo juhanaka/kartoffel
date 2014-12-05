@@ -3,7 +3,7 @@ import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 30.0
+GPS_SIGMA = 6.7
 W_DIST = 0.8
 W_TANG = 0.2
 
@@ -67,7 +67,10 @@ def _add_tangent_scores(ways, base_angle):
 # Distance score = Probability that observation came from a road segment
 # given that GPS error is Gaussian around the road segment with stdev sigma
 def _add_distance_scores(ways, sigma):
-    p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
+    # Gaussian
+    # p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
+    # Rayleigh
+    p = lambda dist: (dist / sigma**2) * math.exp(-(dist**2) / (2 * (sigma**2)))
     for way in ways:
         way['distance_scores'] = [p(dist) for dist in way['distances']]
     return ways

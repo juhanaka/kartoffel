@@ -4,10 +4,10 @@ import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 6.7
-W_DIST = 0.96235506
-W_TANG = 0.03764494
-W_SPEED = 0.00
+GPS_SIGMA = 30
+W_DIST = 0.85
+W_TANG = 0.05
+W_SPEED = 0.1
 
 # SUMMARY
 #--------------------
@@ -70,22 +70,27 @@ def _add_tangent_scores(ways, base_angle):
 # given that GPS error is Gaussian around the road segment with stdev sigma
 def _add_distance_scores(ways, sigma):
     # Gaussian
-    # p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
+    p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
     # Rayleigh
-    p = lambda dist: (dist / sigma**2) * math.exp(-(dist**2) / (2 * (sigma**2)))
+    #p = lambda dist: (dist / sigma**2) * math.exp(-(dist**2) / (2 * (sigma**2)))
     for way in ways:
         way['distance_scores'] = [p(dist) for dist in way['distances']]
     return ways
 
 def _add_speed_scores(ways, speed):
+    speed = speed*2.23694
     for way in ways:
         numbers = re.findall('\d+', way['maxspeed'] or '')
+        if speed < 40:
+            way['speed_scores'] = [1 for _ in way['distances']]
+            continue
         if not numbers:
             way['speed_scores'] = [0 for _ in way['distances']]
+            continue
         else:
             maxspeed = int(numbers[0])
-            speed_diff = speed*2.23694 - maxspeed
-            way['speed_scores'] = [1.0/(1.0+abs(speed_diff/10)) for _ in way['distances']]
+            speed_score = 0 if speed > maxspeed*1.2 else 1 
+            way['speed_scores'] = [speed_score for _ in way['distances']]
     return ways
 
 def _add_emission_probabilities(ways):

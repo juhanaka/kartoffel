@@ -37,7 +37,7 @@ def label_emission_data(file_to_label, **kwargs):
     n = kwargs['n'] if 'n' in kwargs else N
     distance_only = kwargs['distance_only'] if 'distance_only' in kwargs else False
 
-    tmpfile = 'matched_files/Rental2Youssef_matched.csv'
+    tmpfile = 'matched_files/Shopping2Rental_matched.csv'
     #viterbi.run_viterbi(file_to_label,filename=tmpfile, radius=radius, window=window,n=n)
     observations = read_observations(file_to_label)
     results = read_resulting_path(tmpfile)
@@ -54,10 +54,10 @@ def label_emission_data(file_to_label, **kwargs):
                 if (distance_only):
                     labeled.append(seg['distance'])
                 else:
-                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], 1))
+                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'],seg['speed_score'], 1))
             else:
                 if (distance_only == False):
-                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'], -1))
+                    labeled.append((node_ids,seg['distance_score'],seg['tangent_score'],seg['speed_score'], -1))
     if filename is not None:
         with open(filename, 'w') as f:
             f.write('Label, Distance Score, Tangent Score \n')
@@ -65,7 +65,7 @@ def label_emission_data(file_to_label, **kwargs):
                 if (distance_only):
                     f.write(str(l) + '\n')
                 else:
-                    f.write(str(l[3]) + ', ' + str(l[1]) +', '+str(l[2]) + '\n')
+                    f.write(str(l[4]) + ', ' + str(l[1]) +', '+str(l[2])+', '+ str(l[3]) + '\n')
         return
     return labeled
 

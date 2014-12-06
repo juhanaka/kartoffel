@@ -4,7 +4,7 @@ import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 30
+GPS_SIGMA = 4.55
 W_DIST = 0.85
 W_TANG = 0.05
 W_SPEED = 0.1
@@ -104,7 +104,7 @@ def _get_top_n(ways, n):
     probabilities = []
     for way in ways:
         for i, p in enumerate(way['emission_probabilities']):
-            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i],'direction': None, 'distance_score':way['distance_scores'][i], 'tangent_score':way['tangent_scores'][i], 'distance':way['distances'][i]})
+            segments.append({'way_osm_id': way['osm_id'], 'index_in_way': i, 'endpoints': way['segments'][i],'direction': None, 'distance_score':way['distance_scores'][i], 'tangent_score':way['tangent_scores'][i], 'speed_score':way['speed_scores'][i], 'distance':way['distances'][i]})
             probabilities.append(p)
     combined = zip(segments, probabilities)
     combined.sort(key=lambda el: -el[1])

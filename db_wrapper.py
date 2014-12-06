@@ -3,8 +3,8 @@ import re
 import utils
 
 
-DBNAME = 'gis'#'osm_filtered'
-USERNAME = 'toto2' #juhanakangaspunta
+DBNAME = 'osmspeed'#'osm_filtered'
+USERNAME = 'youssef' #juhanakangaspunta
 LINE_TABLE = 'planet_osm_line'
 LATLONG_DBNAME = 'osm_latlong'
 

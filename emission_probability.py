@@ -1,11 +1,13 @@
 import numpy as np
+import re
 import math
 from db_wrapper import query_ways_within_radius
 import utils
 
-GPS_SIGMA = 6.7
-W_DIST = 0.8
-W_TANG = 0.2
+GPS_SIGMA = 30
+W_DIST = 0.85
+W_TANG = 0.05
+W_SPEED = 0.1
 
 # SUMMARY
 #--------------------
@@ -68,16 +70,32 @@ def _add_tangent_scores(ways, base_angle):
 # given that GPS error is Gaussian around the road segment with stdev sigma
 def _add_distance_scores(ways, sigma):
     # Gaussian
-    # p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
+    p = lambda dist: (1/(math.sqrt(2*math.pi)*sigma))*math.exp(-0.5*(dist/sigma)**2)
     # Rayleigh
-    p = lambda dist: (dist / sigma**2) * math.exp(-(dist**2) / (2 * (sigma**2)))
+    #p = lambda dist: (dist / sigma**2) * math.exp(-(dist**2) / (2 * (sigma**2)))
     for way in ways:
         way['distance_scores'] = [p(dist) for dist in way['distances']]
     return ways
 
+def _add_speed_scores(ways, speed):
+    speed = speed*2.23694
+    for way in ways:
+        numbers = re.findall('\d+', way['maxspeed'] or '')
+        if speed < 40:
+            way['speed_scores'] = [1 for _ in way['distances']]
+            continue
+        if not numbers:
+            way['speed_scores'] = [0 for _ in way['distances']]
+            continue
+        else:
+            maxspeed = int(numbers[0])
+            speed_score = 0 if speed > maxspeed*1.2 else 1 
+            way['speed_scores'] = [speed_score for _ in way['distances']]
+    return ways
+
 def _add_emission_probabilities(ways):
     for way in ways:
-        way['emission_probabilities'] = [way['distance_scores'][i]*W_DIST + way['tangent_scores'][i]*W_TANG for i in range(len(way['segments']))]
+        way['emission_probabilities'] = [way['distance_scores'][i]*W_DIST + way['tangent_scores'][i]*W_TANG + way['speed_scores'][i]*W_SPEED for i in range(len(way['segments']))]
     return ways
 
 # Return n segments with highest emission probabilities
@@ -109,6 +127,7 @@ def compute_emission_probabilities(observation, radius, n):
     ways = _add_tangents(ways)
     ways = _add_tangent_scores(ways, course)
     ways = _add_distance_scores(ways, GPS_SIGMA)
+    ways = _add_speed_scores(ways, speed)
     ways = _add_emission_probabilities(ways)
     segments, probabilities = _get_top_n(ways, n)
     return segments, probabilities, point

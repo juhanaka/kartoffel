@@ -18,6 +18,11 @@ def linestring_to_point_array(linestring):
     points = [tuple(map(float, p.split())) for p in points]
     points = tuple(points)  # Order is important, so make it tuple
     return points
+
+def pointstr_to_point(pointstr):
+    pointstr = pointstr[6:-1]
+    point = tuple(map(float, pointstr.split()))
+    return point
     
 # Distance of point to linesegment
 # u == vector from endpoints[0] to endpoints[1]

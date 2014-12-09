@@ -3,8 +3,8 @@ import re
 import utils
 
 
-DBNAME = 'osmspeed'#'osm_filtered'
-USERNAME = 'youssef' #juhanakangaspunta
+DBNAME = 'osm_filtered_speed'#'osm_filtered'
+USERNAME = 'juhanakangaspunta' #juhanakangaspunta
 
 LINE_TABLE = 'planet_osm_line'
 LATLONG_DBNAME = 'osm_latlong'
@@ -79,4 +79,12 @@ def get_node_gps_point(way_id, index):
         return (None, None)
     points = utils.linestring_to_point_array(rows[0][0])
     return points[index] if len(points) else None
+
+def transform_point_merc_latlong(point):
+    cur = connect(DBNAME)
+    qstring = "SELECT ST_AsText(ST_Transform(ST_PointFromText('POINT({0} {1})', 900913), 4326));".format(point[0], point[1])
+    cur.execute(qstring)
+    rows = cur.fetchall()
+    point = utils.pointstr_to_point(rows[0][0])
+    return point
 

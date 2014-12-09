@@ -1,8 +1,8 @@
 import math
 import utils
 
-W_DIST = 0.99578679
-W_BT = 0.00421321
+W_DIST = 0.6639
+W_BT = 0.3360
 
 # Bactrack score assigns a penalty on going back through where you came from.
 # If the previous segment's start is in the next segment's endpoints, i.e.

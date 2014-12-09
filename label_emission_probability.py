@@ -15,7 +15,7 @@ def read_resulting_path(resulting_path_filename):
             if i == 0:
                 continue
             line = line.split(',')
-            results.append((float(line[0]), float(line[1])))
+            results.append((int(line[0]), int(line[1])))
     return results
 
 # Function to read the observations

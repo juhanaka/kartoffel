@@ -5,9 +5,9 @@ from db_wrapper import query_ways_within_radius
 import utils
 
 GPS_SIGMA = 4.55
-W_DIST = 0.85
-W_TANG = 0.05
-W_SPEED = 0.1
+W_DIST = 0.892136
+W_TANG = 0.178634
+W_SPEED = 1.30887223e-07
 
 # SUMMARY
 #--------------------

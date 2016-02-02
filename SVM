@@ -1,0 +1,34 @@
+import sys
+sys.path.append("libsvm-3.20/python")
+from svmutil import *
+import numpy as np
+
+#Dummy data
+y, x = svm_read_problem('libsvm-3.20/heart_scale')
+
+#Dimension of w + 1:
+dim = 14
+#Kernel? 0 is linear, 2 is RBF Gaussian
+ker = 0
+#k-fold cross validation number, 0 or > 1:
+cv = 0
+
+#Train model:
+options = '-s 2 -c 5 -g 0.01 '+'-t '+str(ker)
+if cv > 1:
+	options2 = options+' -v '+str(cv)
+	m = svm_train(y,x,options2)
+m = svm_train(y,x,options)
+
+#Calculate w and b:
+SV = np.mat(m.get_SV())
+SVcoef = np.mat(m.get_sv_coef())
+rows, cols = SV.shape
+SVmat = np.zeros([cols, dim])
+for k in range(cols):
+	for l,key in enumerate(SV[0,k]):
+		SVmat[k,l] = SV[0,k][key]
+w = np.dot(SVcoef.T,SVmat)
+print('w: ',w)
+print('Last element of w must be substituted by -rho')
+print('Normalized w without intercept: ', np.squeeze(w[0,:-1])/np.linalg.norm(w))
